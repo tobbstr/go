@@ -190,3 +190,38 @@ func TestNewBuilder(t *testing.T) {
 	require.NotNil(got.nodes)
 	require.Empty(got.nodes)
 }
+
+func Test_removeNodeRecursively(t *testing.T) {
+	// Given
+	require := require.New(t)
+
+	treeC := &Node{PkgPath: "c"}
+	treeB1 := &Node{PkgPath: "b1"}
+	treeB2 := &Node{PkgPath: "b2"}
+	tree := &Node{PkgPath: "root"}
+
+	treeC.Parents = []*Node{treeB1, treeB2}
+	treeB1.Parents = []*Node{tree}
+	treeB2.Children = []*Node{treeC}
+	treeB2.Parents = []*Node{tree}
+	tree.Children = []*Node{treeB1, treeB2}
+
+	cRemovedTreeB1 := &Node{PkgPath: "b1"}
+	cRemovedTreeB2 := &Node{PkgPath: "b2"}
+	cRemovedTree := &Node{PkgPath: "root"}
+
+	cRemovedTreeB1.Parents = []*Node{cRemovedTree}
+	cRemovedTreeB2.Parents = []*Node{cRemovedTree}
+	cRemovedTree.Children = []*Node{cRemovedTreeB1, cRemovedTreeB2}
+
+	// When
+	removeNodeRecursively(tree, tree.Children[1].Children[0]) // node c
+
+	// Then
+	require.Len(cRemovedTree.Children, 2)
+	require.Len(cRemovedTree.Children[0].Children, 0)
+	require.Len(cRemovedTree.Children[1].Children, 0)
+
+	require.Equal(cRemovedTree.Children[0].PkgPath, "b1")
+	require.Equal(cRemovedTree.Children[1].PkgPath, "b2")
+}

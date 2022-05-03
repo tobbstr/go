@@ -23,6 +23,28 @@ type Node struct {
 	PkgPath string
 }
 
+func (n *Node) Remove(node *Node) {
+	removeNodeRecursively(n, node)
+}
+
+func removeNodeRecursively(n *Node, removableNode *Node) {
+	for i := 0; i < len(n.Children); i++ {
+		if n.Children[i] == removableNode {
+			// if i is last element in slice
+			if len(n.Children) == i+1 {
+				n.Children = n.Children[:i]
+				break
+			}
+
+			n.Children = append(n.Children[:i], n.Children[i+1:]...)
+			i--
+			continue
+		}
+
+		removeNodeRecursively(n.Children[i], removableNode)
+	}
+}
+
 // Builder is a tree builder. A Builder should not be reused for different trees, instead a new Builder should
 // be instantiated.
 type Builder struct {
